@@ -1,0 +1,527 @@
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:     <http://www.w3.org/2004/02/skos/core#> .
+@prefix void:     <http://rdfs.org/ns/void#> .
+@prefix dct:      <http://purl.org/dc/terms/> .
+@prefix foaf:     <http://xmlns.com/foaf/0.1/> .
+@prefix org:      <http://www.w3.org/ns/org#> .
+@prefix admingeo: <http://data.ordnancesurvey.co.uk/ontology/admingeo/> .
+@prefix interval: <http://reference.data.gov.uk/def/intervals/> .
+
+@prefix qb:       <http://purl.org/linked-data/cube#> .
+
+@prefix sdmx-concept:    <http://purl.org/linked-data/sdmx/2009/concept#> .
+@prefix sdmx-dimension:  <http://purl.org/linked-data/sdmx/2009/dimension#> .
+@prefix sdmx-attribute:  <http://purl.org/linked-data/sdmx/2009/attribute#> .
+@prefix sdmx-measure:    <http://purl.org/linked-data/sdmx/2009/measure#> .
+@prefix sdmx-metadata:   <http://purl.org/linked-data/sdmx/2009/metadata#> .
+@prefix sdmx-code:       <http://purl.org/linked-data/sdmx/2009/code#> .
+@prefix sdmx-subject:    <http://purl.org/linked-data/sdmx/2009/subject#> .
+@prefix dbp:    <http://dbpedia.org/resource/> .
+
+@prefix ex-geo:   <http://example.org/geo#> .
+@prefix j:       <http://junar/cne/> .
+@prefix vocab:       <http://junar/cne/vocab/> .
+@prefix instances:       <http://junar/cne/instances/> .
+
+# -- Dataset Metadata --------------------------------------------
+
+j:dataset-sing-por-tipo a qb:DataSet;
+    dct:title       "{{title}}"@es;
+    rdfs:label      "{{title}}"@es;
+    #rdfs:comment    "Balance Energía Secundaria año 2013 en teracalorías"@es;
+    #dct:description "Balance Energía Secundaria año 2013 en teracalorías"@es;
+    dct:publisher   <http://cognita.io#this>, <http://junar.com#this> ;
+    dct:contributor <http://cne.cl#this>;
+    dct:issued      "2015-03-06"^^xsd:date;
+    dct:subject
+        sdmx-subject:2.4.2 ,      # energy
+        dbp:Chile;           # Chile
+    qb:structure j:dsd-bne2013-4 ;  
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    qb:slice j:slice1, j:slice2
+    .
+
+<http://cognita.io#this> a org:Organization, foaf:Agent;
+    rdfs:label "Cognita"@es .    
+
+
+<http://junar.com#this> a org:Organization, foaf:Agent;
+    rdfs:label "Junar"@es .    
+
+
+<http://cne.cl#this> a org:Organization, foaf:Agent;
+    rdfs:label "Comisión Nacional de Energía"@es .    
+        
+# -- Data structure definition ----------------------------
+
+vocab:centralDimension  a rdf:Property, qb:DimensionProperty;
+    rdfs:label "Central"@es;
+    rdfs:range vocab:CentralElectrica;
+    .
+
+vocab:configurationDimension  a rdf:Property, qb:DimensionProperty;
+    rdfs:label "Configuración Central"@es;
+    rdfs:range vocab:ConfiguracionCentral
+    .
+
+vocab:componentDimension  a rdf:Property, qb:DimensionProperty;
+    rdfs:label "Componente Central"@es;
+    rdfs:range vocab:ComponenteCentral
+    .
+
+vocab:fuelDimension  a rdf:Property, qb:DimensionProperty;
+    rdfs:label "Tipo de combustible"@es;
+    rdfs:range vocab:Fuel
+    .
+
+
+vocab:hourDimension  a rdf:Property, qb:DimensionProperty;
+    rdfs:label "Hora medición"@es;
+    rdfs:range xsd:int
+            .
+
+j:dataset-sing-por-tipo-dsd a qb:DataStructureDefinition;
+    # The dimensions
+    qb:component [ qb:dimension vocab:centralDimension;         qb:order 1 ];
+    qb:component [ qb:dimension vocab:configurationDimension;       qb:order 2 ];
+    qb:component [ qb:dimension vocab:componentDimension; qb:order 3 ];
+    # The measure(s)
+    qb:component [ qb:measure vocab:Teracalories] .
+   
+# -- Dimensions and measures  ----------------------------
+
+
+# ---- Clase Fuente energetica e instancias 
+#j:FuenteEnergetica a owl:Class;
+#    rdfs:label "Fuente Energética"@es .
+#
+#j:derivadosDelPetroleo a j:FuenteEnergetica, skos:Concept;
+#    rdfs:label "Derivados del Petróleo"@es .
+#
+#j:petroleoCombustible a j:FuenteEnergetica, skos:Concept;
+#    rdfs:label "Petróleo Combustible"@es .
+#
+#j:gasolinaDeMotor a j:FuenteEnergetica, skos:Concept;
+#    rdfs:label "Gasolina de Motor"@es .
+#
+#    
+#j:tieneFuenteEnergetica a rdf:Property, qb:DimensionProperty;
+#    rdfs:label "fuente energetica"@es;
+#    rdfs:range j:FuenteEnergetica.
+#
+#
+## ----- Clase categorias
+#
+#j:CategoriasBalance a owl:Class;
+#    rdfs:label "Categorías en balance"@es .
+#
+## ---------- Instancias de categoria
+#j:produccionBruta a j:CategoriasBalance;
+#    rdfs:label "Producción bruta"@es .
+#
+#j:importacion a j:CategoriasBalance;
+#    rdfs:label "Importación"@es .
+#
+#j:exportacion a j:CategoriasBalance;
+#    rdfs:label "Exportación"@es .
+#
+#j:variacionStock_PerdidaYCierre a j:CategoriasBalance;
+#    rdfs:label "Var. Stock + Pérdida y Cierre"@es .
+#
+#j:consumoFinal a j:CategoriasBalance;
+#    rdfs:label "Consumo Final"@es .
+#
+#j:consumoCtr a j:CategoriasBalance;
+#    rdfs:label "Consumo CTR"@es .
+#
+#j:consumoTotal a j:CategoriasBalance;
+#    rdfs:label "Consumo Total"@es .
+#
+#
+## ----------- Propiedad que asocia categorías
+#
+#j:tieneCategoria a rdf:Property, qb:DimensionProperty;
+#    rdfs:label "Tiene categoría"@es;
+#    rdfs:range j:CategoriasBalance .
+#
+#
+#-- Measure -----------------------------------------
+
+j:cantidadDeTeracalorias a rdf:Property, qb:MeasureProperty;
+    rdfs:label "cantidad de teracalorías"@es;
+    rdfs:subPropertyOf sdmx-measure:obsValue;
+    rdfs:range xsd:decimal .
+
+
+{%set_value "" as central %}
+
+{%for row in rows%}
+{% if row.column0 != ""  %}
+
+{%set_value row.column0 as central%}
+
+{% endif %}
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 1;
+    j:cantidadDeTeracalorias "{{row.column4}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 3;
+    j:cantidadDeTeracalorias "{{row.column5}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 4;
+    j:cantidadDeTeracalorias "{{row.column6}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 5;
+    j:cantidadDeTeracalorias "{{row.column7}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 6;
+    j:cantidadDeTeracalorias "{{row.column8}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 7;
+    j:cantidadDeTeracalorias "{{row.column9}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 8;
+    j:cantidadDeTeracalorias "{{row.column10}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 9;
+    j:cantidadDeTeracalorias "{{row.column11}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 10;
+    j:cantidadDeTeracalorias "{{row.column12}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 11;
+    j:cantidadDeTeracalorias "{{row.column13}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 12;
+    j:cantidadDeTeracalorias "{{row.column14}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 13;
+    j:cantidadDeTeracalorias "{{row.column15}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 14;
+    j:cantidadDeTeracalorias "{{row.column16}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 15;
+    j:cantidadDeTeracalorias "{{row.column17}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 16;
+    j:cantidadDeTeracalorias "{{row.column18}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 17;
+    j:cantidadDeTeracalorias "{{row.column19}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 18;
+    j:cantidadDeTeracalorias "{{row.column20}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 19;
+    j:cantidadDeTeracalorias "{{row.column21}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 20;
+    j:cantidadDeTeracalorias "{{row.column22}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 21;
+    j:cantidadDeTeracalorias "{{row.column23}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 22;
+    j:cantidadDeTeracalorias "{{row.column24}}"^^xsd:decimal
+    .
+
+[] a qb:Observation;
+    qb:dataSet  j:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    vocab:configurationDimension "{{row.column1}}";
+    vocab:componentDimension "{{row.column2}}";
+    vocab:fuelDimension instances:{{row.column3|slugify}};
+    sdmx-attribute:unitMeasure instances:Teracalories ;
+    vocab:hourDimension 23;
+    j:cantidadDeTeracalorias "{{row.column25}}"^^xsd:decimal
+    .
+
+{%endfor%}
+## -- Observations -----------------------------------------
+#
+## Row 1
+#    
+#j:slice1 a qb:Slice;
+#    qb:sliceStructure  j:sliceByEnergySource ;
+#    j:tieneFuenteEnergetica j:derivadosDelPetroleo;
+#    qb:observation j:o11, j:o12, j:o13, j:o14, j:o15, j:o16, j:o17 ;
+#    .
+#
+#j:o11 a qb:Observation;
+#    qb:dataSet  j:dataset-bne2013-4;
+#    j:tieneCategoria j:produccionBruta;
+#    sdmx-attribute:unitMeasure <http://dbpedia.org/resource/calorie> ;
+#    j:cantidadDeTeracalorias 100810 
+#    .
+#    
+#j:o12 a qb:Observation;
+#    qb:dataSet  j:dataset-bne2013-4;
+#    j:tieneCategoria j:importacion;
+#    sdmx-attribute:unitMeasure <http://dbpedia.org/resource/calorie> ;
+#    j:cantidadDeTeracalorias 80919
+#    .
+#
+#j:o13 a qb:Observation;
+#    qb:dataSet  j:dataset-bne2013-4;
+#    j:tieneCategoria j:exportacion;
+#    sdmx-attribute:unitMeasure <http://dbpedia.org/resource/calorie> ;
+#    j:cantidadDeTeracalorias 9975
+#    .
+#
+#j:o14 a qb:Observation;
+#    qb:dataSet  j:dataset-le3 ;
+#    j:tieneCategoria j:variacionStock_PerdidaYCierre;
+#    j:cantidadDeTeracalorias -1248
+#    .
+#
+#j:o15 a qb:Observation;
+#    qb:dataSet  j:dataset-le3 ;
+#    j:tieneCategoria j:consumoFinal;
+#    j:cantidadDeTeracalorias 157874
+#    .
+#
+#j:o16 a qb:Observation;
+#    qb:dataSet  j:dataset-le3 ;
+#    j:tieneCategoria j:consumoCtr;
+#    j:cantidadDeTeracalorias 12428
+#    .
+#
+#j:o17 a qb:Observation;
+#    qb:dataSet  j:dataset-le3 ;
+#    j:tieneCategoria j:consumoTotal;
+#    j:cantidadDeTeracalorias 172994
+#    .
+#
+#
+## Column 2
+#    
+#j:slice2 a qb:Slice;
+#    qb:sliceStructure  j:sliceByEnergySource ;
+#    j:tieneFuenteEnergetica j:petroleoCombustible;
+#    qb:observation j:o21, j:o22, j:o23, j:o24, j:o25, j:o26, j:o27 ;
+#    .
+#
+#j:o21 a qb:Observation;
+#    qb:dataSet  j:dataset-bne2013-4;
+#    j:tieneCategoria j:produccionBruta;
+#    sdmx-attribute:unitMeasure <http://dbpedia.org/resource/calorie> ;
+#    j:cantidadDeTeracalorias 13146 ;
+#    skos:broader j:o11
+#    .
+#    
+#j:o22 a qb:Observation;
+#    qb:dataSet  j:dataset-bne2013-4;
+#    j:tieneCategoria j:importacion;
+#    sdmx-attribute:unitMeasure <http://dbpedia.org/resource/calorie> ;
+#    j:cantidadDeTeracalorias 1177;
+#    skos:broader j:o12
+#    .
+#
+#j:o23 a qb:Observation;
+#    qb:dataSet  j:dataset-bne2013-4;
+#    j:tieneCategoria j:exportacion;
+#    sdmx-attribute:unitMeasure <http://dbpedia.org/resource/calorie> ;
+#    j:cantidadDeTeracalorias 2258;
+#    skos:broader j:o13
+#    .
+#
+#j:o24 a qb:Observation;
+#    qb:dataSet  j:dataset-le3 ;
+#    j:tieneCategoria j:variacionStock_PerdidaYCierre;
+#    j:cantidadDeTeracalorias -2905;
+#    skos:broader j:o13
+#    .
+#
+#j:o25 a qb:Observation;
+#    qb:dataSet  j:dataset-le3 ;
+#    j:tieneCategoria j:consumoFinal;
+#    j:cantidadDeTeracalorias 13020;
+#    skos:broader j:o14
+#    .
+#
+#j:o26 a qb:Observation;
+#    qb:dataSet  j:dataset-le3 ;
+#    j:tieneCategoria j:consumoCtr;
+#    j:cantidadDeTeracalorias 1950;
+#    skos:broader j:o15
+#    .
+#
+#j:o27 a qb:Observation;
+#    qb:dataSet  j:dataset-le3 ;
+#    j:tieneCategoria j:consumoTotal;
+#    j:cantidadDeTeracalorias 14970;
+#    skos:broader j:o17
+#    .
+#
+   
