@@ -1,0 +1,360 @@
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:     <http://www.w3.org/2004/02/skos/core#> .
+@prefix void:     <http://rdfs.org/ns/void#> .
+@prefix dct:      <http://purl.org/dc/terms/> .
+@prefix foaf:     <http://xmlns.com/foaf/0.1/> .
+@prefix org:      <http://www.w3.org/ns/org#> .
+@prefix admingeo: <http://data.ordnancesurvey.co.uk/ontology/admingeo/> .
+@prefix interval: <http://reference.data.gov.uk/def/intervals/> .
+@prefix muo: <http://purl.oclc.org/NET/muo/muo#>.
+
+@prefix qb:       <http://purl.org/linked-data/cube#> .
+
+@prefix sdmx-concept:    <http://purl.org/linked-data/sdmx/2009/concept#> .
+@prefix sdmx-dimension:  <http://purl.org/linked-data/sdmx/2009/dimension#> .
+@prefix sdmx-attribute:  <http://purl.org/linked-data/sdmx/2009/attribute#> .
+@prefix sdmx-measure:    <http://purl.org/linked-data/sdmx/2009/measure#> .
+@prefix sdmx-metadata:   <http://purl.org/linked-data/sdmx/2009/metadata#> .
+@prefix sdmx-code:       <http://purl.org/linked-data/sdmx/2009/code#> .
+@prefix sdmx-subject:    <http://purl.org/linked-data/sdmx/2009/subject#> .
+@prefix dbp:    <http://dbpedia.org/resource/> .
+
+@prefix ex-geo:   <http://example.org/geo#> .
+@prefix vocab:       <http://junar/cne/vocab/> .
+@prefix instances:       <http://junar/cne/instances/> .
+
+# -- Dataset Metadata --------------------------------------------
+
+instances:dataset-sic a qb:DataSet;
+    dct:title       "{{metadata.title}}"@es;
+    rdfs:label      "{{metadata.title}}"@es;
+    #rdfs:comment    "Balance Energía Secundaria año 2013 en teracalorías"@es;
+    #dct:description "Balance Energía Secundaria año 2013 en teracalorías"@es;
+    dct:publisher   <http://cognita.io#this>, <http://junar.com#this> ;
+    dct:contributor <http://cne.cl#this>;
+    dct:issued      "2015-03-06"^^xsd:date;
+    dct:date        "{{pArgument0}}"^^xsd:date;
+    dct:subject
+        sdmx-subject:2.4.2 ,      # energy
+        dbp:Chile;           # Chile
+    qb:structure instances:dsd-sic ;
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    qb:slice instances:slice1, instances:slice2
+    .
+
+<http://cognita.io#this> a org:Organization, foaf:Agent;
+    rdfs:label "Cognita"@es .
+
+
+<http://junar.com#this> a org:Organization, foaf:Agent;
+    rdfs:label "Junar"@es .
+
+
+<http://cne.cl#this> a org:Organization, foaf:Agent;
+    rdfs:label "Comisión Nacional de Energía"@es .
+
+# -- Data structure definition ----------------------------
+
+
+vocab:MegaWattHour a owl:Class, muo:SimpleDerivedUnit;
+                    rdfs:label "MegaWatt hora"@es;
+                    muo:modifierPrefix <http://purl.oclc.org/NET/muo/ucum/prefix/kilo>;
+                    muo:dimensionalSize 1.0;
+                    muo:derivesFrom <http://dbpedia.org/resource/Kilowatt_hour> .
+
+
+
+vocab:centralDimension  a rdf:Property, qb:DimensionProperty;
+    rdfs:label "Central"@es;
+    rdfs:range vocab:CentralElectrica;
+    .
+
+vocab:hourDimension  a rdf:Property, qb:DimensionProperty;
+    rdfs:label "Hora medición"@es;
+    rdfs:range xsd:int
+            .
+
+instances:dataset-sic-por-tipo-dsd a qb:DataStructureDefinition;
+    # The dimensions
+    qb:component [ qb:dimension vocab:centralDimension;         qb:order 1 ];
+    qb:component [ qb:dimension vocab:configurationDimension;       qb:order 2 ];
+    qb:component [ qb:dimension vocab:componentDimension; qb:order 3 ];
+    # The measure(s)
+    qb:component [ qb:measure vocab:Teracalories] .
+
+#-- Measure -----------------------------------------
+
+vocab:amountOfMegaWattsHour a rdf:Property, qb:MeasureProperty;
+    rdfs:label "Cantidad de MegaWatts-Hora"@es;
+    rdfs:subPropertyOf sdmx-measure:obsValue;
+    rdfs:range xsd:decimal .
+
+
+{%set_value "" as central %}
+{%set_value 1 as should_continue %}
+
+{%for row in rows%}
+
+{%if row.column0 == "Total Generación SIC"%}
+{%set_value 0 as should_continue %}
+{%endif%}
+{% if  should_continue == 1%}
+
+{% if row.column0 != ""  %}
+
+{%set_value row.column0 as central%}
+
+{% endif %}
+
+
+instances:{{central|slugify}} a vocab:Central;
+rdfs:label "{{central}}"@es .
+
+{%if row.column1 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 1;
+    instances:amountOfMegaWattsHour "{{row.column1|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column2 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 2;
+    instances:amountOfMegaWattsHour "{{row.column2|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column3 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 3;
+    instances:amountOfMegaWattsHour "{{row.column3|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column4 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 4;
+    instances:amountOfMegaWattsHour "{{row.column4|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column5 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 5;
+    instances:amountOfMegaWattsHour "{{row.column5|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column6 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 6;
+    instances:amountOfMegaWattsHour "{{row.column6|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column7 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 7;
+    instances:amountOfMegaWattsHour "{{row.column7|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column8 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 8;
+    instances:amountOfMegaWattsHour "{{row.column8|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column9 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 9;
+    instances:amountOfMegaWattsHour "{{row.column9|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+
+{%if row.column10 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 10;
+    instances:amountOfMegaWattsHour "{{row.column10|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column11 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 11;
+    instances:amountOfMegaWattsHour "{{row.column11|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column12 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 12;
+    instances:amountOfMegaWattsHour "{{row.column12|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column13 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 13;
+    instances:amountOfMegaWattsHour "{{row.column13|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column14 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 14;
+    instances:amountOfMegaWattsHour "{{row.column14|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column15 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 15;
+    instances:amountOfMegaWattsHour "{{row.column15|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column16 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 16;
+    instances:amountOfMegaWattsHour "{{row.column16|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column17 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 17;
+    instances:amountOfMegaWattsHour "{{row.column17|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column18 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 18;
+    instances:amountOfMegaWattsHour "{{row.column18|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column19 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 19;
+    instances:amountOfMegaWattsHour "{{row.column19|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column20 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 20;
+    instances:amountOfMegaWattsHour "{{row.column20|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column21 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 21;
+    instances:amountOfMegaWattsHour "{{row.column21|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column22 != ""%}
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 22;
+    instances:amountOfMegaWattsHour "{{row.column22|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column23 != ""%}
+
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 23;
+    instances:amountOfMegaWattsHour "{{row.column23|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%if row.column24 != ""%}
+
+[] a qb:Observation;
+    qb:dataSet  instances:dataset-sing-por-tipo;
+    vocab:centralDimension instances:{{central|slugify}};
+    sdmx-attribute:unitMeasure vocab:MegaWattHour ;
+    vocab:hourDimension 24;
+    instances:amountOfMegaWattsHour "{{row.column24|jreplace:",|"}}"^^xsd:decimal
+    .
+{%endif%}
+
+{%endif%}
+{%endfor%}
