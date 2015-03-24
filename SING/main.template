@@ -5,6 +5,7 @@
 @prefix skos:     <http://www.w3.org/2004/02/skos/core#> .
 @prefix void:     <http://rdfs.org/ns/void#> .
 @prefix dct:      <http://purl.org/dc/terms/> .
+@prefix dctypes:  <http://purl.org/dc/dcmitype/> .
 @prefix foaf:     <http://xmlns.com/foaf/0.1/> .
 @prefix org:      <http://www.w3.org/ns/org#> .
 @prefix admingeo: <http://data.ordnancesurvey.co.uk/ontology/admingeo/> .
@@ -28,23 +29,37 @@
 @prefix instances:       <http://junar.com/cne/instances/> .
 
 # -- Dataset Metadata --------------------------------------------
-instances:dataset-sing-por-tipo a dcat:Dataset;
-                        dct:title "{{metadata.resource.fields.title}}"@es .
-instances:dataset-sing-por-tipo-{{metadata.pArgument0}}-distribution a qb:DataSet;
-                        pav:version "{{metadata.pArgument0}}";
-                        dct:isVersionOf instances:dataset-sing-por-tipo ;
+instances:dataset-sing-por-tipo a dctypes:Dataset;
                         dct:title "{{metadata.resource.fields.title}}"@es ;
-                        rdfs:label "{{metadata.resource.fields.title}}"@es ;
-                        #rdfs:comment    "Balance Energía Secundaria año 2013 en teracalorías"@es;
-                        #dct:description "Balance Energía Secundaria año 2013 en teracalorías"@es;
                         dct:publisher   <http://cognita.io#this>, <http://junar.com#this> ;
-                        dct:contributor <http://cne.cl#this>;
-                        dct:issued      "2015-03-06"^^xsd:date;
-                        dct:date        "{{metadata.pArgument0}}"^^xsd:date;
+                        dct:contributor <http://cne.cl#this> ;
+                        rdfs:comment    "Balance Energía Secundaria año 2013 en teracalorías"@es;
+                        dct:description "Balance Energía Secundaria año 2013 en teracalorías"@es;
                         dct:subject
                             sdmx-subject:2.4.2 ,      # energy
                             dbp:Chile;           # Chile
-                        qb:structure instances:dataset-sing-por-tipo-{{metadata.pArgument0}}-distribution-dsd ;  
+.
+
+instances:dataset-sing-por-tipo-{{metadata.pArgument0}} a dctypes:DataSet;
+                        dct:title "{{metadata.resource.fields.title}}"@es ;
+                        rdfs:label "{{metadata.resource.fields.title}}"@es ;
+                        dct:publisher   <http://cognita.io#this>, <http://junar.com#this> ;
+                        dct:contributor <http://cne.cl#this>;
+                        dct:issued      "{{metadata.pArgument0}}"^^xsd:date;
+                        dct:date        "{{metadata.pArgument0}}"^^xsd:date;
+                        dct:isVersionOf instances:dataset-sing-por-tipo ;
+                        pav:version "{{metadata.pArgument0}}" ;
+                        dcat:distribution instances:dataset-sing-por-tipo-{{metadata.pArgument0}}-distribution .
+
+instances:dataset-sing-por-tipo-{{metadata.pArgument0}}-distribution a qb:DataSet;
+                        pav:version "{{metadata.pArgument0}}";
+                        dct:title "{{metadata.resource.fields.title}} {{metadata.pArgument0}}"@es ;
+                        rdfs:label "{{metadata.resource.fields.title}} {{metadata.pArgument0}}"@es ;
+                        rdfs:comment    "Balance Energía Secundaria año 2013 en teracalorías"@es;
+                        dct:description "Balance Energía Secundaria año 2013 en teracalorías"@es;
+                        dct:publisher   <http://cognita.io#this>, <http://junar.com#this> ;
+                        dct:contributor <http://cne.cl#this>;
+                        qb:structure instances:dataset-sing-por-tipo-distribution-dsd;
                         sdmx-attribute:unitMeasure vocab:Teracalories 
                         #qb:slice instances:slice1, instances:slice2
                         .
@@ -95,7 +110,7 @@ vocab:hourDimension  a rdf:Property, qb:DimensionProperty;
     rdfs:range xsd:int
             .
 
-instances:dataset-sing-por-tipo-{{metadata.pArgument0}}-distribution-dsd a qb:DataStructureDefinition;
+instances:dataset-sing-por-tipo-distribution-dsd a qb:DataStructureDefinition;
     # The dimensions
     qb:component [ qb:dimension vocab:centralDimension;         qb:order 1 ];
     qb:component [ qb:dimension vocab:configurationDimension;       qb:order 2 ];
